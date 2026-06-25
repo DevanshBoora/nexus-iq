@@ -2,13 +2,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
-
-# Setup basic logging config
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("nexus-iq")
+from app.api.middleware import TracingMiddleware
+from app.core.logger import logger
 
 app = FastAPI(
     title="NexusIQ API",
@@ -24,6 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Tracing Middleware
+app.add_middleware(TracingMiddleware)
 
 # Include main API router
 app.include_router(api_router, prefix="/api/v1")

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Index, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -80,11 +80,19 @@ class WebhookEvent(Base):
     workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workspace.id", ondelete="CASCADE"), nullable=False)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False)
-    processed: Mapped[bool] = mapped_column(default=False)
+    
+    # Retry and DLQ state
+    status: Mapped[str] = mapped_column(String(50), default="PENDING")  # PENDING, PROCESSING, PROCESSED, FAILED
+    retry_count: Mapped[int] = mapped_column(default=0)
+    processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    last_retry_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(String(4000), nullable=True)
+    
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     # Indexes
     __table_args__ = (
         Index("idx_webhook_event_workspace_id", "workspace_id"),
         Index("idx_webhook_event_created_at", "created_at"),
+        Index("idx_webhook_event_status", "status"),
     )
