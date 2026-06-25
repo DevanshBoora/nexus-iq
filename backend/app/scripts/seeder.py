@@ -3,8 +3,8 @@ import uuid
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 
-from app.database.session import SessionLocal
-from app.database.models import User, Workspace, WorkspaceMember, Repository, WebhookEvent, AICache
+from app.database.session import async_session
+from app.database.models import User, Workspace, WorkspaceMember, Repository, WebhookEvent, AICache, APITelemetry, Insight
 from app.ai_engine.cache.manager import AICacheManager
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -14,7 +14,7 @@ async def seed_demo_environment():
     Seeds the database with realistic demo data so the application is fully
     functional without external integrations. Ideal for resume/portfolio viewing.
     """
-    async with SessionLocal() as session:
+    async with async_session() as session:
         print("Starting Database Seed...")
         
         # 1. Create Demo User
@@ -96,7 +96,53 @@ async def seed_demo_environment():
         
         await session.commit()
         
-        # 6. Pre-seed AI Insights in the Cache
+        # 6. Pre-seed APITelemetry to simulate an incident
+        base_time = datetime.utcnow() - timedelta(minutes=30)
+        telemetry_records = []
+        
+        # Normal traffic
+        for i in range(100):
+            telemetry_records.append(
+                APITelemetry(
+                    workspace_id=demo_workspace.id,
+                    endpoint="/api/v1/users",
+                    status_code=200,
+                    latency_ms=45,
+                    timestamp=base_time + timedelta(seconds=i)
+                )
+            )
+            
+        # Incident Traffic (Spike in 500s on /api/v1/auth)
+        incident_time = datetime.utcnow() - timedelta(minutes=15)
+        for i in range(20):
+            telemetry_records.append(
+                APITelemetry(
+                    workspace_id=demo_workspace.id,
+                    endpoint="/api/v1/auth",
+                    status_code=500,
+                    latency_ms=3500, # Degraded latency
+                    timestamp=incident_time + timedelta(seconds=i)
+                )
+            )
+            
+        session.add_all(telemetry_records)
+        
+        # 7. Pre-seed the correlated Insight
+        incident_insight = Insight(
+            id=uuid.uuid4(),
+            workspace_id=demo_workspace.id,
+            insight_type="INCIDENT",
+            title="Authentication Service Outage Correlated to Redis Migration",
+            reasoning_summary="The sudden 100% error rate and 3500ms P99 latency on `/api/v1/auth` directly aligns with the 'Database Caching Migration' PR. The authentication service likely relies on Redis for token validation, which was disrupted.",
+            confidence_score=0.98,
+            supporting_evidence=["Error rate spiked to 100.00% (20/20). P99 Latency degraded to 3500.00ms.", "PR: Migrate from Redis to PostgreSQL for AI Cache"],
+            actionable_steps=["Rollback the Redis migration PR immediately.", "Verify PostgreSQL connection pools in the auth service."]
+        )
+        session.add(incident_insight)
+        
+        await session.commit()
+        
+        # 8. Pre-seed AI Insights in the Cache
         # This allows the demo to show AI insights without actually invoking the Gemini API
         cache_manager = AICacheManager(session)
         

@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Index, JSON, Integer
+from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Index, JSON, Integer, Float
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -104,3 +104,26 @@ class AICache(Base):
     response_json: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+class APITelemetry(Base):
+    __tablename__ = "api_telemetry"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workspace.id", ondelete="CASCADE"))
+    endpoint: Mapped[str] = mapped_column(String)
+    status_code: Mapped[int] = mapped_column(Integer)
+    latency_ms: Mapped[int] = mapped_column(Integer)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class Insight(Base):
+    __tablename__ = "insight"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workspace.id", ondelete="CASCADE"))
+    insight_type: Mapped[str] = mapped_column(String)  # RISK, INCIDENT, OPTIMIZATION, SUMMARY
+    title: Mapped[str] = mapped_column(String)
+    reasoning_summary: Mapped[str] = mapped_column(String)
+    confidence_score: Mapped[float] = mapped_column(Float)
+    supporting_evidence: Mapped[dict] = mapped_column(JSON)
+    actionable_steps: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

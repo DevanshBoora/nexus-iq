@@ -6,7 +6,7 @@ class EngineeringInsight(BaseModel):
     Standardized schema for all AI-generated engineering insights.
     This enforces structured outputs from the LLM provider.
     """
-    insight_type: Literal["RISK", "OPTIMIZATION", "SUMMARY", "DEBT", "SECURITY"] = Field(
+    insight_type: Literal["RISK", "OPTIMIZATION", "SUMMARY", "DEBT", "SECURITY", "INCIDENT"] = Field(
         description="The category of the insight generated."
     )
     title: str = Field(
