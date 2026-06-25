@@ -44,8 +44,8 @@ async def test_github_webhook_success(client: AsyncClient, db_session):
     result = await db_session.execute(stmt)
     event = result.scalar_one_or_none()
     assert event is not None
-    assert event.event_type == "push"
-    assert event.processed is False
+    assert event.event_type == "github.push"
+    assert event.status == "PENDING"
     assert event.payload["ref"] == "refs/heads/main"
 
 @pytest.mark.asyncio
@@ -80,7 +80,7 @@ async def test_github_webhook_missing_headers(client: AsyncClient):
         f"/api/v1/webhooks/github?workspace_id={workspace_id}",
         json=payload
     )
-    assert response.status_code == 422 # Pydantic/FastAPI validation error for missing header
+    assert response.status_code == 401 # Signature verification fails first when headers are missing
 
 @pytest.mark.asyncio
 async def test_github_webhook_malformed_json(client: AsyncClient):

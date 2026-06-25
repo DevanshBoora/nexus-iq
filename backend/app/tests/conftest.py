@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.main import app
 from app.database.session import get_db
 from app.database.base_class import Base
+from unittest.mock import patch
 
 # Setup in-memory SQLite database for fast, isolated test runs
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -18,6 +19,11 @@ TestingSessionLocal = async_sessionmaker(
     expire_on_commit=False,
     class_=AsyncSession
 )
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+def mock_celery_send_task():
+    with patch("app.api.endpoints.webhooks.celery_app.send_task") as mock_send_task:
+        yield mock_send_task
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def init_db():
