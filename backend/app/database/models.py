@@ -2,7 +2,8 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Index, JSON
+from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Index, JSON, Integer
+from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base_class import Base
@@ -77,22 +78,29 @@ class WebhookEvent(Base):
     __tablename__ = "webhook_event"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workspace.id", ondelete="CASCADE"), nullable=False)
-    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workspace.id", ondelete="CASCADE"))
+    event_type: Mapped[str] = mapped_column(String)
+    payload: Mapped[dict] = mapped_column(JSON)
     
-    # Retry and DLQ state
-    status: Mapped[str] = mapped_column(String(50), default="PENDING")  # PENDING, PROCESSING, PROCESSED, FAILED
-    retry_count: Mapped[int] = mapped_column(default=0)
-    processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    last_retry_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    error_message: Mapped[Optional[str]] = mapped_column(String(4000), nullable=True)
-    
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    # DLQ / Retry Pipeline Fields
+    status: Mapped[str] = mapped_column(String, default="PENDING")  # PENDING, PROCESSING, PROCESSED, FAILED
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_retry_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     # Indexes
     __table_args__ = (
         Index("idx_webhook_event_workspace_id", "workspace_id"),
         Index("idx_webhook_event_created_at", "created_at"),
         Index("idx_webhook_event_status", "status"),
     )
+
+class AICache(Base):
+    __tablename__ = "ai_cache"
+    
+    prompt_hash: Mapped[str] = mapped_column(String, primary_key=True)
+    response_json: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
