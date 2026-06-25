@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.celery_app import celery_app
 from app.core.logger import logger, correlation_id_ctx_var, task_id_ctx_var
 from app.database.session import async_session
-from app.database.models import WebhookEvent
+from app.database.models import WebhookEvent, Insight
+from app.ai_engine.core.orchestrator import AIOrchestrator
 
 async def async_process_event(event_id: str, retries: int, max_retries: int) -> None:
     async with async_session() as session:
@@ -38,9 +39,24 @@ async def async_process_event(event_id: str, retries: int, max_retries: int) -> 
             # save_to_db(parsed_data)
             # ---------------------------------------------------------
             
-            # For Milestone 3, we simply simulate processing the normalized payload
-            logger.info(f"Processing event type: {event.event_type}")
-            await asyncio.sleep(0.5) # Simulate work
+            # Call AI Orchestrator to analyze the webhook event payload
+            logger.info(f"Processing event type: {event.event_type} with AI Engine")
+            orchestrator = AIOrchestrator(session)
+            insight_dto = await orchestrator.analyze_event(event_id)
+            
+            # Save the AI insight to the database
+            db_insight = Insight(
+                id=uuid.uuid4(),
+                workspace_id=event.workspace_id,
+                insight_type="RISK_ANALYSIS",
+                title=insight_dto.title,
+                reasoning_summary=insight_dto.reasoning_summary,
+                confidence_score=insight_dto.confidence_score,
+                supporting_evidence=insight_dto.supporting_evidence,
+                actionable_steps=insight_dto.actionable_steps,
+                created_at=datetime.utcnow()
+            )
+            session.add(db_insight)
             
             # Mark as processed
             event.status = "PROCESSED"
