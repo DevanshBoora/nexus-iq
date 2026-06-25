@@ -18,14 +18,14 @@ async def seed_demo_environment():
         print("Starting Database Seed...")
         
         # 1. Create Demo User
-        demo_email = "demo@nexusiq.dev"
+        demo_email = "demo@nexusiq.app"
         hashed_password = pwd_context.hash("demo123!")
         
         demo_user = User(
             id=uuid.uuid4(),
             email=demo_email,
             hashed_password=hashed_password,
-            is_active=True
+            role="ADMIN"
         )
         session.add(demo_user)
         
@@ -35,6 +35,7 @@ async def seed_demo_environment():
             name="NexusIQ Demo Engineering"
         )
         session.add(demo_workspace)
+        await session.flush()
         
         # 3. Add User to Workspace
         member = WorkspaceMember(
@@ -49,12 +50,14 @@ async def seed_demo_environment():
             id=uuid.uuid4(),
             workspace_id=demo_workspace.id,
             name="nexus-api",
+            github_repo_id=1234567,
             url="https://github.com/demo/nexus-api"
         )
         repo2 = Repository(
             id=uuid.uuid4(),
             workspace_id=demo_workspace.id,
             name="nexus-frontend",
+            github_repo_id=7654321,
             url="https://github.com/demo/nexus-frontend"
         )
         session.add_all([repo1, repo2])
