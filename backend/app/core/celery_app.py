@@ -21,6 +21,13 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,  # Fair dispatch
 )
 
+if settings.REDIS_URL.startswith("rediss://"):
+    import ssl
+    celery_app.conf.update(
+        broker_use_ssl={"ssl_cert_reqs": ssl.CERT_NONE},
+        redis_backend_use_ssl={"ssl_cert_reqs": ssl.CERT_NONE}
+    )
+
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     logger.info("Celery configured successfully.")
