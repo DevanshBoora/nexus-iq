@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: nexus-iq-api
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 1440
+
+  - type: worker
+    name: nexus-iq-celery
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A app.core.celery_app worker --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        fromService:
+          type: web
+          name: nexus-iq-api
+          envVarKey: DATABASE_URL
+      - key: REDIS_URL
+        fromService:
+          type: web
+          name: nexus-iq-api
+          envVarKey: REDIS_URL
+      - key: GEMINI_API_KEY
+        fromService:
+          type: web
+          name: nexus-iq-api
+          envVarKey: GEMINI_API_KEY

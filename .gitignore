@@ -1,10 +1,27 @@
+# Environments
+.env
+.env.*
+!.env.example
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -17,47 +34,46 @@ parts/
 sdist/
 var/
 wheels/
-share/
-pip-selfcheck.json
-htmlcov/
-.tox/
-.nosexy/
-.nosetests/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Pytest and coverage
+.coverage
+.coverage.*
+.cache
 nosetests.xml
-pylintrc
-.jax/
-.ipynb_checkpoints/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-backend/venv/
-backend/.env
+pytestdebug.log
 
-# Node / Next.js
+# Node & Next.js
 node_modules/
-/out/
-/.next/
 .next/
-/frontend/node_modules/
-/frontend/.next/
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-.DS_Store
-*.pem
+out/
+build/
+.npm/
 
-# Database / Volumes
-postgres_data/
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Database
 *.db
-*.sqlite
-sqlite.db
-backend/*.db
-backend/*.sqlite
+*.sqlite3
 
-# Environment configs
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-backend/app/core/.env
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# OS
+Thumbs.db
