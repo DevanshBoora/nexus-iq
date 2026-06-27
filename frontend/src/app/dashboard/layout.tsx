@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Activity, GitPullRequest, Settings, Terminal, LogOut } from "lucide-react";
+import { LayoutDashboard, Activity, GitPullRequest, Settings, Terminal, LogOut, ToggleLeft, ToggleRight } from "lucide-react";
+import { OnboardingModal } from "@/components/OnboardingModal";
+import { useDemoMode } from "@/components/DemoContext";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { isDemoMode, setIsDemoMode } = useDemoMode();
   
   const navItems = [
     { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -15,7 +18,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background relative">
+      <OnboardingModal />
       {/* Sidebar */}
       <aside className="glass-panel w-64 border-r border-white/5 flex flex-col">
         <div className="p-6 flex items-center gap-3 border-b border-white/5">
@@ -47,7 +51,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
         
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-white/5 space-y-2">
+          <button
+            onClick={() => setIsDemoMode(!isDemoMode)}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
+              isDemoMode 
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              {isDemoMode ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
+              <span className="font-medium text-sm">Demo Mode</span>
+            </div>
+            <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${isDemoMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}`}>
+              {isDemoMode ? 'ON' : 'OFF'}
+            </span>
+          </button>
+
           <Link
             href="/login"
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 transition-all hover:bg-white/5 hover:text-red-400"
