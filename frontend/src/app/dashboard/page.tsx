@@ -158,6 +158,38 @@ export default function DashboardOverview() {
                 <TimelineItem time="09:48" title="Latency Spike" icon={Activity} color="orange" active={phase >= 2} />
                 <TimelineItem time="09:50" title="Error Rate Critical" icon={AlertTriangle} color="red" active={phase >= 3} />
                 <TimelineItem time="09:52" title="AI RCA Generated" icon={BrainCircuit} color="purple" active={phase >= 5} />
+                
+                <AnimatePresence>
+                  {phase >= 6 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: 'auto' }}
+                      transition={{ delay: 0.5, duration: 0.4 }}
+                      className="mt-6 bg-[#1a1c23] border border-emerald-500/20 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 p-4 opacity-5">
+                        <CheckCircle2 className="w-16 h-16 text-emerald-400" />
+                      </div>
+                      <div className="flex items-center gap-2 mb-1 relative z-10">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span className="text-white font-bold text-sm tracking-wide">Incident Resolved</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-y-2 text-xs relative z-10">
+                        <div className="text-slate-400">Detection Time:</div>
+                        <div className="text-white font-mono text-right">14 sec</div>
+                        
+                        <div className="text-slate-400">Root Cause Confidence:</div>
+                        <div className="text-emerald-400 font-mono font-bold text-right">98%</div>
+                        
+                        <div className="text-slate-400">Estimated Saved:</div>
+                        <div className="text-white font-mono text-right">$48,000</div>
+                        
+                        <div className="text-slate-400">Time to Resolution:</div>
+                        <div className="text-white font-mono text-right">2m 11s</div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>

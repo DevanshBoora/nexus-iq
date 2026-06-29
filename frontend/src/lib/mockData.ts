@@ -10,6 +10,9 @@ export interface Repository {
   contributors: number;
   recentInsight: string;
   language: string;
+  environment: "Production" | "Staging" | "Development";
+  riskScore: number;
+  todaysDeployments: number;
 }
 
 export interface Deployment {
@@ -56,6 +59,9 @@ export const MOCK_REPOS: Repository[] = [
     contributors: 12,
     recentInsight: "Critical latency degradation detected post-deployment.",
     language: "TypeScript",
+    environment: "Production",
+    riskScore: 84,
+    todaysDeployments: 3,
   },
   {
     id: "repo-2",
@@ -67,6 +73,9 @@ export const MOCK_REPOS: Repository[] = [
     contributors: 5,
     recentInsight: "Token verification extremely stable.",
     language: "Go",
+    environment: "Production",
+    riskScore: 12,
+    todaysDeployments: 1,
   },
   {
     id: "repo-3",
@@ -78,6 +87,9 @@ export const MOCK_REPOS: Repository[] = [
     contributors: 24,
     recentInsight: "Bundle size increased by 4% in last release.",
     language: "React",
+    environment: "Staging",
+    riskScore: 45,
+    todaysDeployments: 5,
   }
 ];
 
