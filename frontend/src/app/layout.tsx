@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { DemoProvider } from "@/components/DemoContext";
+import { EntityProvider } from "@/components/entities/EntityContext";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-heading" });
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <body className="antialiased font-sans">
         <DemoProvider>
-          {children}
+          <EntityProvider>
+            {children}
+          </EntityProvider>
         </DemoProvider>
       </body>
     </html>
