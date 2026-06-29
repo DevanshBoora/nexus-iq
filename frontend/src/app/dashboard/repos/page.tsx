@@ -3,8 +3,16 @@
 import React from "react";
 import { RepositoryCard } from "@/components/entities/EntityCards";
 import { MOCK_REPOS } from "@/lib/mockData";
+import { useDemoMode } from "@/components/DemoContext";
+import { EmptyState } from "@/components/EmptyState";
 
 export default function RepositoriesPage() {
+  const { isDemoMode } = useDemoMode();
+
+  if (!isDemoMode) {
+    return <EmptyState />;
+  }
+
   return (
     <div className="h-full flex flex-col text-white max-w-7xl mx-auto w-full">
       <div className="mb-8 flex justify-between items-end">

@@ -2,6 +2,8 @@
 
 import React from "react";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useDemoMode } from "@/components/DemoContext";
+import { EmptyState } from "@/components/EmptyState";
 
 const performanceData = [
   { day: "Mon", latency: 45, errors: 2 },
@@ -14,6 +16,12 @@ const performanceData = [
 ];
 
 export default function AnalyticsPage() {
+  const { isDemoMode } = useDemoMode();
+
+  if (!isDemoMode) {
+    return <EmptyState />;
+  }
+
   return (
     <div className="h-full flex flex-col text-white max-w-5xl mx-auto w-full">
       <div className="mb-8">

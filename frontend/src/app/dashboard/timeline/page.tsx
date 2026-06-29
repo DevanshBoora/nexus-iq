@@ -3,6 +3,8 @@
 import React from "react";
 import { GitPullRequest, GitCommit, Activity, Box, AlertTriangle, BrainCircuit } from "lucide-react";
 import { useEntity } from "@/components/entities/EntityContext";
+import { useDemoMode } from "@/components/DemoContext";
+import { EmptyState } from "@/components/EmptyState";
 
 const TIMELINE_EVENTS = [
   { id: "e1", time: "Today, 09:52 AM", title: "AI RCA Generated", type: "incident", entityId: "inc-1", icon: BrainCircuit, color: "purple" },
@@ -15,6 +17,11 @@ const TIMELINE_EVENTS = [
 
 export default function TimelinePage() {
   const { openEntity } = useEntity();
+  const { isDemoMode } = useDemoMode();
+
+  if (!isDemoMode) {
+    return <EmptyState />;
+  }
 
   const colorMap: any = {
     emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",

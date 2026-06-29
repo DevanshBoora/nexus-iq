@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { Activity, Clock, Zap, BrainCircuit, GitCommit, Box, AlertTriangle, ChevronRight, CheckCircle2, GitPullRequest, Code2 } from "lucide-react";
 import { useDemoMode } from "@/components/DemoContext";
+import { EmptyState } from "@/components/EmptyState";
 
 const normalTelemetry = [
   { time: "09:40", latency: 45, errors: 0 },
@@ -65,6 +66,10 @@ export default function DashboardOverview() {
   const chartData = phase >= 2 ? incidentTelemetry : normalTelemetry;
   const healthScore = phase >= 3 ? 32 : 98;
   const isRed = phase >= 3;
+
+  if (!isDemoMode) {
+    return <EmptyState />;
+  }
 
   return (
     <div className="h-full flex flex-col relative text-white">

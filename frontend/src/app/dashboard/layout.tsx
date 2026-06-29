@@ -135,7 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="h-full w-full flex flex-col md:flex-row bg-[#15171e] rounded-[2.5rem] overflow-hidden shadow-2xl ring-1 ring-white/5 border border-white/5">
         
         {/* Sidebar */}
-        <aside className="w-full md:w-64 p-6 flex flex-col relative shrink-0">
+        <aside className="w-full md:w-64 p-6 flex flex-col relative shrink-0 overflow-y-auto custom-scrollbar">
           <div className="flex items-center gap-3 mb-10 pl-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#d4ff00] text-black">
               <Terminal className="h-5 w-5" />
@@ -173,21 +173,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             );
           })}
         </nav>
-        
-        <div className="mt-8 mb-4">
-          <div className="bg-[#d4ff00] rounded-3xl p-6 text-black relative overflow-hidden">
-            <h4 className="font-bold text-lg mb-1 relative z-10">Upgrade to Pro</h4>
-            <p className="text-sm font-medium opacity-80 mb-6 relative z-10">Unlock premium AI analytics.</p>
-            <button 
-              className="w-full bg-[#15171e] text-white font-bold py-3 rounded-2xl relative z-10 hover:bg-black transition-colors"
-            >
-              Upgrade Now
-            </button>
-            {/* Decorative background shapes */}
-            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-white/20 rounded-full blur-xl" />
-            <div className="absolute top-0 left-0 w-16 h-16 bg-white/30 rounded-full blur-xl" />
-          </div>
-        </div>
 
         <div className="space-y-2 border-t border-white/10 pt-4 mt-2">
           <button
