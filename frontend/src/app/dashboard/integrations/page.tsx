@@ -2,16 +2,8 @@
 
 import React from "react";
 import { CheckCircle2, GitBranch, Database } from "lucide-react";
-import { useDemoMode } from "@/components/DemoContext";
-import { EmptyState } from "@/components/EmptyState";
 
 export default function IntegrationsPage() {
-  const { isDemoMode } = useDemoMode();
-
-  if (!isDemoMode) {
-    return <EmptyState />;
-  }
-
   return (
     <div className="h-full flex flex-col text-white max-w-5xl mx-auto w-full">
       <div className="mb-8">
