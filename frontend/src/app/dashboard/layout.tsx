@@ -2,18 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Activity, GitPullRequest, Settings, Terminal, LogOut, ToggleLeft, ToggleRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
+import { LayoutDashboard, Activity, GitPullRequest, Settings, Terminal, LogOut, ToggleLeft, ToggleRight, BrainCircuit, AlertTriangle, Box, GitCommit, LineChart, Blocks } from "lucide-react";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { useDemoMode } from "@/components/DemoContext";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isDemoMode, setIsDemoMode } = useDemoMode();
+  const [showCmd, setShowCmd] = useState(false);
   
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setShowCmd((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
   const navItems = [
-    { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Engineering Feed", href: "/dashboard/feed", icon: Activity },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "AI Copilot", href: "/dashboard/ai", icon: BrainCircuit },
+    { name: "Incidents", href: "/dashboard/incidents", icon: AlertTriangle, count: 1 },
+    { name: "Timeline", href: "/dashboard/timeline", icon: GitCommit },
     { name: "Repositories", href: "/dashboard/repos", icon: GitPullRequest },
+    { name: "Deployments", href: "/dashboard/deployments", icon: Box },
+    { name: "Analytics", href: "/dashboard/analytics", icon: LineChart },
+    { name: "Integrations", href: "/dashboard/integrations", icon: Blocks },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
@@ -21,6 +40,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="h-screen overflow-hidden relative p-4 lg:p-8 bg-background">
       <OnboardingModal />
       
+      {/* Command Palette Modal */}
+      {showCmd && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-32 bg-black/50 backdrop-blur-sm" onClick={() => setShowCmd(false)}>
+          <div className="bg-[#15171e] w-full max-w-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center px-4 py-3 border-b border-white/5">
+              <Search className="w-5 h-5 text-slate-400 mr-3" />
+              <input 
+                autoFocus 
+                type="text" 
+                placeholder="Search NexusIQ or type a command..." 
+                className="w-full bg-transparent border-none text-white outline-none placeholder-slate-500 text-lg"
+              />
+              <div className="text-xs text-slate-500 font-mono bg-white/5 px-2 py-1 rounded">ESC</div>
+            </div>
+            <div className="p-2 space-y-1">
+              <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Suggested Actions</div>
+              <button className="w-full text-left px-3 py-3 rounded-lg hover:bg-white/5 text-slate-300 flex items-center gap-3">
+                <BrainCircuit className="w-4 h-4 text-purple-400" /> Ask AI Copilot about recent latency spike
+              </button>
+              <button className="w-full text-left px-3 py-3 rounded-lg hover:bg-white/5 text-slate-300 flex items-center gap-3">
+                <AlertTriangle className="w-4 h-4 text-red-400" /> View active incidents (1)
+              </button>
+              <button className="w-full text-left px-3 py-3 rounded-lg hover:bg-white/5 text-slate-300 flex items-center gap-3">
+                <Box className="w-4 h-4 text-emerald-400" /> Trigger manual deployment rollback
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="h-full w-full flex flex-col md:flex-row bg-[#15171e] rounded-[2.5rem] overflow-hidden shadow-2xl ring-1 ring-white/5 border border-white/5">
         
         {/* Sidebar */}
@@ -48,12 +97,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                  <span>{item.name}</span>
+                  <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-slate-400"}`} />
+                  <span className="text-sm">{item.name}</span>
                 </div>
-                {isActive && (
-                  <div className="w-6 h-6 rounded-full bg-[#d4ff00] flex items-center justify-center text-[10px] font-bold text-black">
-                    3
+                {item.count && (
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    isDemoMode && item.name === 'Incidents' ? 'bg-red-500 text-white animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-white/10 text-white'
+                  }`}>
+                    {item.count}
                   </div>
                 )}
               </Link>

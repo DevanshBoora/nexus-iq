@@ -1,298 +1,328 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  BarChart, Bar, XAxis, Tooltip, ResponsiveContainer
+  BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area
 } from "recharts";
-import { Activity, Clock, Zap, Search, Bell, MoreVertical, ChevronDown } from "lucide-react";
+import { Activity, Clock, Zap, BrainCircuit, GitCommit, Box, AlertTriangle, ChevronRight, CheckCircle2, GitPullRequest, Code2 } from "lucide-react";
 import { useDemoMode } from "@/components/DemoContext";
 
+const normalTelemetry = [
+  { time: "09:40", latency: 45, errors: 0 },
+  { time: "09:42", latency: 42, errors: 0 },
+  { time: "09:44", latency: 48, errors: 0 },
+  { time: "09:46", latency: 45, errors: 0 },
+  { time: "09:48", latency: 50, errors: 0 },
+  { time: "09:50", latency: 46, errors: 0 },
+];
+
 const incidentTelemetry = [
-  { time: "Jun", val1: 40, val2: 20 },
-  { time: "Jul", val1: 30, val2: 25 },
-  { time: "Aug", val1: 20, val2: 40 },
-  { time: "Sept", val1: 85, val2: 60 },
-  { time: "Oct", val1: 30, val2: 20 },
-  { time: "Nov", val1: 25, val2: 30 },
-  { time: "Dec", val1: 20, val2: 25 },
+  { time: "09:40", latency: 45, errors: 0 },
+  { time: "09:42", latency: 42, errors: 0 },
+  { time: "09:44", latency: 48, errors: 0 },
+  { time: "09:46", latency: 120, errors: 0 }, // deploy finishes
+  { time: "09:48", latency: 850, errors: 12 },
+  { time: "09:50", latency: 3200, errors: 145 },
 ];
 
 export default function DashboardOverview() {
   const { isDemoMode } = useDemoMode();
-  const [hasIncident, setHasIncident] = useState(false);
-  const [timeRange, setTimeRange] = useState("Today");
-  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Cinematic State Machine
+  // 0: Normal
+  // 1: Deployment Notification
+  // 2: Latency climbing
+  // 3: Errors spiking & Health dropping
+  // 4: AI Thinking
+  // 5: AI Typing Conclusion
+  // 6: Complete & Interactive
+  const [phase, setPhase] = useState(0);
+  const [expandedEvidence, setExpandedEvidence] = useState<string | null>(null);
 
-  const isDegraded = isDemoMode || hasIncident;
+  useEffect(() => {
+    if (phase === 0) return;
+    
+    let timer: NodeJS.Timeout;
+    if (phase === 1) timer = setTimeout(() => setPhase(2), 2000);
+    else if (phase === 2) timer = setTimeout(() => setPhase(3), 2000);
+    else if (phase === 3) timer = setTimeout(() => setPhase(4), 2000);
+    else if (phase === 4) timer = setTimeout(() => setPhase(5), 4000);
+    else if (phase === 5) timer = setTimeout(() => setPhase(6), 4000);
 
-  const handleSearch = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      alert(`Searching for: ${searchQuery}`);
+    return () => clearTimeout(timer);
+  }, [phase]);
+
+  const triggerSimulation = () => {
+    if (phase > 0) {
+      setPhase(0);
+      setExpandedEvidence(null);
+    } else {
+      setPhase(1);
     }
   };
 
+  const chartData = phase >= 2 ? incidentTelemetry : normalTelemetry;
+  const healthScore = phase >= 3 ? 32 : 98;
+  const isRed = phase >= 3;
+
   return (
-    <div className="max-w-7xl mx-auto h-full flex flex-col relative text-white">
+    <div className="h-full flex flex-col relative text-white">
       
-      {/* Top Bar */}
-      <div className="flex justify-between items-center mb-6 shrink-0">
-        <div className="flex items-center gap-3">
-          <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Avatar" className="w-10 h-10 rounded-full ring-2 ring-[#d4ff00]" />
-          <div 
-            className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => alert("Profile settings coming soon!")}
-          >
-            <span className="font-bold text-white">Devansh Boora</span>
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Search workspaces..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearch}
-              className="pl-9 pr-4 py-2 bg-[#1e2029] rounded-full text-sm border border-white/10 shadow-sm focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] outline-none w-64 text-white placeholder-slate-500 transition-all"
-            />
-          </div>
-          <button 
-            onClick={() => alert("No new notifications.")}
-            className="w-10 h-10 bg-[#1e2029] rounded-full flex items-center justify-center border border-white/10 hover:border-[#d4ff00]/50 transition-colors relative"
-          >
-            <Bell className="w-5 h-5 text-slate-300" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-[#d4ff00] rounded-full border border-[#1e2029]"></span>
-          </button>
-        </div>
-      </div>
-
-      {/* Header */}
+      {/* Top Header & Simulation Trigger */}
       <div className="flex justify-between items-end mb-6 shrink-0">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Workspace Overview</h1>
-          <p className="text-slate-400 font-medium">Take control of your system health today!</p>
+          <h1 className="text-3xl font-bold text-white mb-1 tracking-tight font-heading">Engineering Copilot</h1>
+          <p className="text-slate-400 text-sm font-medium">Real-time system health and root cause analysis.</p>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-400 font-medium">12 July, 2024</span>
-          <button 
-            onClick={() => setTimeRange(timeRange === "Today" ? "This Week" : "Today")}
-            className="px-4 py-2 bg-[#1e2029] border border-white/10 rounded-full shadow-sm text-sm font-bold flex items-center gap-2 hover:bg-[#262833] transition-colors"
-          >
-            {timeRange} <ChevronDown className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Interactive Trigger for Demo */}
-      <div className="mb-6 flex gap-3 shrink-0">
         <button 
-          onClick={() => setHasIncident(!hasIncident)}
-          className={`px-4 py-2 text-sm font-bold rounded-full transition-all border ${
-            hasIncident 
-              ? 'bg-red-500/20 text-red-400 border-red-500/50 hover:bg-red-500/30' 
-              : 'bg-[#1e2029] text-white border-white/10 hover:border-[#d4ff00]/50'
+          onClick={triggerSimulation}
+          className={`px-5 py-2 text-sm font-bold rounded-full transition-all border ${
+            phase > 0 
+              ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.2)]' 
+              : 'bg-[#d4ff00] text-black border-[#d4ff00] hover:bg-[#bce600] shadow-[0_0_15px_rgba(212,255,0,0.2)]'
           }`}
         >
-          {hasIncident ? 'Resolve Incident' : 'Run Demo Incident'}
+          {phase > 0 ? 'Resolve Incident' : 'Simulate Outage'}
         </button>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 flex-1 pb-4">
+      {/* Main Content Area */}
+      <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar flex flex-col gap-6 pb-8">
         
-        {/* Left Column (Tall Card) */}
-        <div className="bg-[#1e2029] border border-white/5 rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden h-full">
-          <div className="flex justify-between items-start mb-6 z-10 shrink-0">
-            <div className="flex items-center gap-2 font-bold text-white">
-              <Zap className="w-5 h-5 text-[#d4ff00]" /> System Load
-            </div>
-            <button onClick={() => alert("More options...")} className="hover:text-white text-slate-500">
-              <MoreVertical className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex items-end gap-3 mb-8 z-10 shrink-0">
-            <h2 className="text-4xl font-bold text-white">{isDegraded ? '18.5k' : '4.3k'}</h2>
-            <div className={`px-2 py-1 rounded-md text-xs font-bold mb-1 ${isDegraded ? 'bg-red-500/20 text-red-400' : 'bg-[#d4ff00] text-black'}`}>
-              {isDegraded ? '+300%' : '+5%'}
-            </div>
-            <span className="text-slate-400 text-sm font-medium mb-1 ml-1">reqs {timeRange.toLowerCase()}</span>
-          </div>
-
-          {/* Overlapping Circles Chart */}
-          <div className="relative flex-1 min-h-[160px] w-full flex items-center justify-center mb-8 z-10">
-            <div className="absolute left-[10%] w-32 xl:w-36 h-32 xl:h-36 bg-[#a78bfa] rounded-full flex flex-col items-center justify-center text-white shadow-lg z-20 ring-4 ring-[#1e2029]">
-              <span className="text-2xl font-bold">{isDegraded ? '12k' : '2.6k'}</span>
-              <span className="text-xs font-medium">API</span>
-            </div>
-            <div className="absolute right-[10%] w-28 xl:w-32 h-28 xl:h-32 bg-[#2d3142] rounded-full flex flex-col items-center justify-center text-white shadow-lg z-10 ring-4 ring-[#1e2029]">
-              <span className="text-xl font-bold">{isDegraded ? '5k' : '1.2k'}</span>
-              <span className="text-xs text-slate-400 font-medium">Workers</span>
-            </div>
-            <div className="absolute bottom-0 left-[35%] w-20 xl:w-24 h-20 xl:h-24 bg-[#d4ff00] rounded-full flex flex-col items-center justify-center text-black shadow-lg z-30 ring-4 ring-[#1e2029]">
-              <span className="text-lg font-bold">{isDegraded ? '1.5k' : '500'}</span>
-              <span className="text-xs font-bold">DB</span>
-            </div>
-          </div>
-
-          {/* Progress Bars */}
-          <div className="space-y-4 mt-auto z-10 shrink-0">
-            <div>
-              <div className="flex justify-between text-sm font-bold mb-2">
-                <span className="text-xl">45<span className="text-sm text-slate-500 font-medium ml-1">%</span></span>
-                <span className="text-slate-400">API Requests <span className="inline-block w-2 h-2 rounded-full bg-[#a78bfa] ml-1"></span></span>
-              </div>
-              <div className="w-full bg-[#2d3142] h-2 rounded-full overflow-hidden">
-                <div className="bg-[#a78bfa] w-[45%] h-full rounded-full"></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm font-bold mb-2">
-                <span className="text-xl">30<span className="text-sm text-slate-500 font-medium ml-1">%</span></span>
-                <span className="text-slate-400">Background Tasks <span className="inline-block w-2 h-2 rounded-full bg-slate-500 ml-1"></span></span>
-              </div>
-              <div className="w-full bg-[#2d3142] h-2 rounded-full overflow-hidden">
-                <div className="bg-slate-500 w-[30%] h-full rounded-full"></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm font-bold mb-2">
-                <span className="text-xl">25<span className="text-sm text-slate-500 font-medium ml-1">%</span></span>
-                <span className="text-slate-400">Database Queries <span className="inline-block w-2 h-2 rounded-full bg-[#d4ff00] ml-1"></span></span>
-              </div>
-              <div className="w-full bg-[#2d3142] h-2 rounded-full overflow-hidden">
-                <div className="bg-[#d4ff00] w-[25%] h-full rounded-full"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Columns Grid */}
-        <div className="lg:col-span-2 grid grid-cols-2 gap-6 h-full content-between">
-          
-          {/* Top Row */}
-          <div className="bg-[#1e2029] border border-white/5 rounded-3xl p-6 shadow-xl flex flex-col justify-between h-full min-h-[160px]">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2 font-bold text-white">
-                <Clock className="w-5 h-5 text-sky-400" /> Avg Latency
-              </div>
-              <button onClick={() => alert("Latency options")} className="text-slate-500 hover:text-white">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex justify-between items-end">
-              <h2 className="text-4xl font-bold flex items-baseline text-white">
-                {isDegraded ? '1250' : '62'} <span className="text-sm font-medium text-slate-500 ml-1">ms</span>
-              </h2>
-              <div className="text-right">
-                <p className="text-xs text-slate-500 font-medium">Avg</p>
-                <p className="text-sm font-bold text-white">78 ms</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#1e2029] border border-white/5 rounded-3xl p-6 shadow-xl row-span-2 flex flex-col relative overflow-hidden h-full">
-            <div className="flex justify-between items-start mb-6 shrink-0">
-              <div className="flex items-center gap-2 font-bold text-white">
-                <Activity className="w-5 h-5 text-emerald-400" /> Health Index
-              </div>
-              <button onClick={() => alert("Health options")} className="text-slate-500 hover:text-white">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex items-center gap-3 mb-6 shrink-0">
-              <h2 className="text-4xl font-bold flex items-baseline text-white">
-                {isDegraded ? '32' : '78'} <span className="text-sm font-medium text-slate-500 ml-1">%</span>
-              </h2>
-              <div className={`px-2 py-1 rounded-md text-xs font-bold ${isDegraded ? 'bg-red-500/20 text-red-400' : 'bg-[#d4ff00] text-black'}`}>
-                {isDegraded ? '-46%' : '+10%'}
-              </div>
-            </div>
-            {/* Dot Matrix Mockup */}
-            <div className="flex-1 flex items-end justify-between gap-1 opacity-80 min-h-[100px]">
-              {[1, 2, 3, 4, 2, 5, 6, 8, 4, 3, 2, 5, 7, 9, 5].map((val, i) => (
-                <div key={i} className="flex flex-col gap-1 justify-end h-full">
-                  {Array.from({ length: 10 }).map((_, j) => (
-                    <div 
-                      key={j} 
-                      className={`w-2.5 h-2.5 rounded-full ${10 - j <= (isDegraded ? Math.max(1, val - 4) : val) ? 'bg-[#a78bfa]' : 'bg-[#2d3142]'}`}
-                    />
-                  ))}
+        {/* AI Hero Card (Centerpiece) */}
+        <AnimatePresence mode="wait">
+          {phase >= 4 && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0, y: -20 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              className="bg-[#120a1f] border border-purple-500/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(168,85,247,0.1)] shrink-0"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center border border-purple-500/50">
+                  <BrainCircuit className="w-5 h-5 text-purple-400" />
                 </div>
-              ))}
+                <h2 className="text-lg font-bold text-white">AI Root Cause Analysis</h2>
+                {phase === 6 && (
+                  <span className="ml-auto px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-bold border border-purple-500/30">
+                    91% Confidence
+                  </span>
+                )}
+              </div>
+
+              {phase === 4 && (
+                <div className="space-y-2 pl-11">
+                  <ThinkingStep text="Reading telemetry streams..." delay={0} />
+                  <ThinkingStep text="Comparing recent deployments..." delay={1} />
+                  <ThinkingStep text="Inspecting pull request #184..." delay={2} />
+                  <ThinkingStep text="Synthesizing incident timeline..." delay={3} />
+                </div>
+              )}
+
+              {phase >= 5 && (
+                <div className="pl-11">
+                  <Typewriter text="Checkout latency increased 3200ms after Deployment v1.4.2. This is directly caused by PR #184 introducing an inefficient N+1 database query on the telemetry table. Recommended action: Rollback deployment v1.4.2 immediately." />
+                  
+                  {phase === 6 && (
+                    <motion.div 
+                      initial={{ opacity: 0, marginTop: 0 }} animate={{ opacity: 1, marginTop: 16 }} transition={{ delay: 0.5 }}
+                      className="flex gap-3"
+                    >
+                      <button className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold rounded-lg transition-colors shadow-lg">
+                        Execute Rollback
+                      </button>
+                      <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-medium rounded-lg transition-colors">
+                        View Query Plan
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Dynamic 2-Column Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+          
+          {/* Left Column: Timeline & Evidence */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <div className="bg-[#15171e] border border-white/5 rounded-2xl p-6 shadow-xl flex-1 flex flex-col">
+              <h3 className="text-white font-bold mb-6 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-slate-400" /> Event Timeline
+              </h3>
+              
+              <div className="relative flex-1 pl-4 border-l border-white/10 space-y-8">
+                <TimelineItem time="09:42" title="PR #184 Merged" icon={GitPullRequest} color="emerald" active={phase >= 0} />
+                <TimelineItem time="09:46" title="Deployment v1.4.2" icon={Box} color="blue" active={phase >= 1} />
+                <TimelineItem time="09:48" title="Latency Spike" icon={Activity} color="orange" active={phase >= 2} />
+                <TimelineItem time="09:50" title="Error Rate Critical" icon={AlertTriangle} color="red" active={phase >= 3} />
+                <TimelineItem time="09:52" title="AI RCA Generated" icon={BrainCircuit} color="purple" active={phase >= 5} />
+              </div>
             </div>
           </div>
 
-          {/* Middle Row Left */}
-          <div className="bg-[#1e2029] border border-white/5 rounded-3xl p-6 shadow-xl flex flex-col justify-between h-full min-h-[160px]">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2 font-bold text-white">
-                <Activity className="w-5 h-5 text-orange-400" /> Deployments
-              </div>
-              <button onClick={() => alert("Deployment options")} className="text-slate-500 hover:text-white">
-                <MoreVertical className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex justify-between items-end">
-              <h2 className="text-4xl font-bold flex items-baseline text-white">
-                5.8 <span className="text-sm font-medium text-slate-500 ml-1">/ wk</span>
-              </h2>
-              <div className="text-right">
-                <p className="text-xs text-slate-500 font-medium">Active</p>
-                <p className="text-sm font-bold text-white">75 Min</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Dark Card */}
-          <div className="col-span-2 bg-gradient-to-br from-[#12141c] to-[#0f111a] border border-white/5 rounded-3xl p-6 text-white shadow-2xl flex flex-col h-full min-h-[220px]">
-            <div className="flex justify-between items-start mb-4 shrink-0">
-              <div className="flex items-center gap-2 font-bold text-white">
-                <Search className="w-5 h-5 text-purple-400" /> Incident Analysis
-              </div>
-              <button 
-                onClick={() => alert("Changing timeframe...")}
-                className="bg-[#1e2029] border border-white/10 text-sm px-4 py-1.5 rounded-full flex items-center gap-2 font-medium hover:bg-[#2d3142] transition-colors text-slate-300"
-              >
-                Monthly <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
+          {/* Right Column: Telemetry & Correlation */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
             
-            <div className="flex gap-12 mb-4 shrink-0">
-              <div>
-                <h2 className="text-4xl font-bold flex items-baseline text-[#d4ff00]">
-                  {isDegraded ? '15' : '85'} <span className="text-sm font-medium text-[#d4ff00]/50 ml-1">%</span>
-                </h2>
-                <p className="text-sm text-slate-500 font-medium mt-1">Uptime Efficiency</p>
+            {/* Health Pulse Row */}
+            <div className="grid grid-cols-3 gap-4 shrink-0">
+              <div className={`rounded-2xl p-5 border transition-colors duration-500 ${isRed ? 'bg-red-500/10 border-red-500/20' : 'bg-[#15171e] border-white/5'}`}>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Health Score</p>
+                <div className="flex items-end gap-2">
+                  <span className={`text-3xl font-bold ${isRed ? 'text-red-400' : 'text-emerald-400'}`}>{healthScore}%</span>
+                </div>
               </div>
-              <div>
-                <h2 className="text-4xl font-bold flex items-baseline text-[#a78bfa]">
-                  {isDegraded ? '45m' : '7h 15m'}
-                </h2>
-                <p className="text-sm text-slate-500 font-medium mt-1">Time to Resolution</p>
+              <div className={`rounded-2xl p-5 border transition-colors duration-500 ${phase >= 2 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-[#15171e] border-white/5'}`}>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">P99 Latency</p>
+                <div className="flex items-end gap-2">
+                  <span className={`text-3xl font-bold ${phase >= 2 ? 'text-orange-400' : 'text-white'}`}>
+                    {phase >= 2 ? '3.2s' : '45ms'}
+                  </span>
+                </div>
+              </div>
+              <div className={`rounded-2xl p-5 border transition-colors duration-500 ${isRed ? 'bg-red-500/10 border-red-500/20' : 'bg-[#15171e] border-white/5'}`}>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Error Rate</p>
+                <div className="flex items-end gap-2">
+                  <span className={`text-3xl font-bold ${isRed ? 'text-red-400' : 'text-white'}`}>
+                    {isRed ? '14.5%' : '0.01%'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 w-full min-h-[100px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={incidentTelemetry} barGap={4}>
-                  <XAxis dataKey="time" stroke="#475569" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    cursor={{fill: 'rgba(255,255,255,0.02)'}}
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }} 
-                  />
-                  <Bar dataKey="val1" fill="#2d3142" radius={[4, 4, 4, 4]} />
-                  <Bar dataKey="val2" fill="#d4ff00" radius={[4, 4, 4, 4]} />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Interactive Correlation Chart */}
+            <div className="bg-[#15171e] border border-white/5 rounded-2xl p-6 shadow-xl flex-1 min-h-[250px] flex flex-col relative overflow-hidden">
+              <div className="flex justify-between items-center mb-6 shrink-0">
+                <h3 className="text-white font-bold flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-slate-400" /> Checkout Endpoint Telemetry
+                </h3>
+              </div>
+              
+              <div className="flex-1 w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={isRed ? "#ef4444" : "#8b5cf6"} stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor={isRed ? "#ef4444" : "#8b5cf6"} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="time" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }} 
+                    />
+                    <Area type="monotone" dataKey="latency" stroke={isRed ? "#ef4444" : "#8b5cf6"} strokeWidth={3} fillOpacity={1} fill="url(#colorLatency)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+
+                {/* The Interactive "Correlation Marker" */}
+                <AnimatePresence>
+                  {phase >= 1 && (
+                    <motion.div 
+                      initial={{ opacity: 0, top: -20 }}
+                      animate={{ opacity: 1, top: 0 }}
+                      className="absolute left-[65%] top-0 bottom-0 w-px bg-blue-500/50 flex flex-col items-center"
+                    >
+                      <div className="absolute top-4 bg-blue-500/20 text-blue-400 border border-blue-500/50 text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap cursor-pointer hover:bg-blue-500/40 transition-colors"
+                           onClick={() => setExpandedEvidence('deploy')}
+                      >
+                        Deploy v1.4.2
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
+
+            {/* Evidence Explorer (Expands on click) */}
+            <AnimatePresence>
+              {expandedEvidence === 'deploy' && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="bg-[#12141c] border border-white/10 rounded-2xl p-5 overflow-hidden shrink-0"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                      <Code2 className="w-4 h-4 text-slate-400" /> Evidence: PR #184 Diff
+                    </h4>
+                    <button onClick={() => setExpandedEvidence(null)} className="text-slate-500 hover:text-white text-xs">Close</button>
+                  </div>
+                  <div className="font-mono text-xs text-slate-300 bg-black/50 p-4 rounded-lg overflow-x-auto border border-white/5">
+                    <div className="text-red-400">- const users = await db.query("SELECT * FROM telemetry LIMIT 100");</div>
+                    <div className="text-emerald-400">+ const users = await db.query("SELECT * FROM telemetry"); // Removed limit for export</div>
+                    <div className="text-slate-500 mt-2">// AI Note: This query performs a full table scan on 4M rows.</div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
           </div>
-
         </div>
+      </div>
+      
+      {/* Global CSS adjustments for strict layout */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+      `}} />
+    </div>
+  );
+}
+
+// Subcomponents for the Cinematic UI
+
+const ThinkingStep = ({ text, delay }: { text: string, delay: number }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: delay * 0.8 }}
+      className="flex items-center gap-2 text-sm text-slate-400"
+    >
+      <CheckCircle2 className="w-3.5 h-3.5 text-purple-500" />
+      {text}
+    </motion.div>
+  );
+}
+
+const Typewriter = ({ text }: { text: string }) => {
+  const [displayed, setDisplayed] = useState("");
+  
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayed(text.substring(0, i));
+      i++;
+      if (i > text.length) clearInterval(interval);
+    }, 20); // typing speed
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <p className="text-slate-200 text-sm leading-relaxed border-l-2 border-purple-500/50 pl-4">{displayed}</p>;
+}
+
+const TimelineItem = ({ time, title, icon: Icon, color, active }: any) => {
+  const colorMap: any = {
+    emerald: "bg-emerald-500/20 text-emerald-400 border-emerald-500/50 ring-emerald-500/20",
+    blue: "bg-blue-500/20 text-blue-400 border-blue-500/50 ring-blue-500/20",
+    orange: "bg-orange-500/20 text-orange-400 border-orange-500/50 ring-orange-500/20",
+    red: "bg-red-500/20 text-red-400 border-red-500/50 ring-red-500/20",
+    purple: "bg-purple-500/20 text-purple-400 border-purple-500/50 ring-purple-500/20",
+  };
+
+  return (
+    <div className={`relative transition-all duration-500 ${active ? 'opacity-100' : 'opacity-20 grayscale'}`}>
+      <div className={`absolute -left-[25px] w-6 h-6 rounded-full border flex items-center justify-center bg-[#15171e] z-10 ${active ? colorMap[color] : 'border-white/10 text-slate-500'}`}>
+        <Icon className="w-3 h-3" />
+      </div>
+      <div className="flex flex-col -mt-1">
+        <span className="text-xs font-mono text-slate-500 mb-0.5">{time}</span>
+        <span className={`text-sm font-bold ${active ? 'text-white' : 'text-slate-500'}`}>{title}</span>
       </div>
     </div>
   );
