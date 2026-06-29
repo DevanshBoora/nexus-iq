@@ -18,10 +18,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="flex min-h-screen relative p-4 lg:p-8 bg-background">
+    <div className="h-screen overflow-hidden relative p-4 lg:p-8 bg-background">
       <OnboardingModal />
       
-      <div className="flex-1 flex flex-col md:flex-row bg-[#1f2128] rounded-[2.5rem] overflow-hidden shadow-2xl ring-1 ring-black/5">
+      <div className="h-full w-full flex flex-col md:flex-row bg-[#15171e] rounded-[2.5rem] overflow-hidden shadow-2xl ring-1 ring-white/5 border border-white/5">
         
         {/* Sidebar */}
         <aside className="w-full md:w-64 p-6 flex flex-col relative shrink-0">
@@ -43,12 +43,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`flex items-center justify-between px-5 py-3.5 rounded-full transition-all ${
                   isActive 
-                    ? "bg-white text-slate-900 shadow-md font-bold" 
+                    ? "bg-[#1e2029] text-white shadow-md font-bold border border-white/5" 
                     : "text-slate-400 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <Icon className={`h-5 w-5 ${isActive ? "text-slate-900" : "text-slate-400"}`} />
+                  <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`} />
                   <span>{item.name}</span>
                 </div>
                 {isActive && (
@@ -65,7 +65,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="bg-[#d4ff00] rounded-3xl p-6 text-black relative overflow-hidden">
             <h4 className="font-bold text-lg mb-1 relative z-10">Upgrade to Pro</h4>
             <p className="text-sm font-medium opacity-80 mb-6 relative z-10">Unlock premium AI analytics.</p>
-            <button className="w-full bg-[#1f2128] text-white font-bold py-3 rounded-2xl relative z-10 hover:bg-black transition-colors">
+            <button 
+              onClick={() => alert("Pro features are currently in development!")}
+              className="w-full bg-[#15171e] text-white font-bold py-3 rounded-2xl relative z-10 hover:bg-black transition-colors"
+            >
               Upgrade Now
             </button>
             {/* Decorative background shapes */}
@@ -99,7 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 bg-[#f4f5f8] rounded-[2rem] m-2 overflow-auto p-8 relative shadow-inner">
+      <main className="flex-1 bg-[#0f111a] rounded-[2rem] m-2 overflow-auto p-8 relative shadow-inner border border-white/5">
         {children}
       </main>
       

@@ -7,16 +7,16 @@
   --color-primary: #8b5cf6;
   --color-primary-dark: #7c3aed;
   
-  --color-surface: #ffffff;
-  --color-surface-hover: #f8fafc;
+  --color-surface: #1e2029;
+  --color-surface-hover: #262833;
   
   --font-sans: 'Inter', sans-serif;
   --font-heading: 'Outfit', sans-serif;
 }
 
 :root {
-  --background: #dce4c9; /* Subtle green/yellow outer background to match image edges */
-  --foreground: #111827;
+  --background: #0f111a;
+  --foreground: #f8fafc;
 }
 
 body {
@@ -28,20 +28,19 @@ body {
 }
 
 .app-wrapper {
-  background-color: #f3f4f6; /* Main internal app background */
+  background-color: #15171e;
   border-radius: 2rem;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   display: flex;
   min-height: calc(100vh - 4rem);
   margin: 2rem;
 }
 
 .glass-panel {
-  /* Replacing glass with solid white cards */
   background: var(--color-surface);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
 }
 
 .dark-panel {
